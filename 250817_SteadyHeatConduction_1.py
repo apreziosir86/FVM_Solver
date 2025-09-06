@@ -43,6 +43,9 @@ b[0] = T0
 A[nx - 1, nx - 1] = 1
 b[nx - 1] = TL
 
+plt.spy(A)
+plt.show()
+
 # Solving linear system:
 T = np.linalg.solve(A, b)
 
