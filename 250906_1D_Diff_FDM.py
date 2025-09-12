@@ -9,8 +9,8 @@ T0 = 0                          # Tiempo inicial (s)
 Tf = 0.5                        # Tiempo final (s)
 
 # Parámetros numéricos de la solución
-dx = 0.10                        # Paso espacial (m)
-S = 1.5                          # Número de estabilidad
+dx = 0.05                        # Paso espacial (m)
+S = 0.45                         # Número de estabilidad
 dt = S * dx**2                   # Paso temporal (s)
 
 print(f'El paso de tiempo será de: {dt:.4f} s')
@@ -23,6 +23,8 @@ def analytical_solution(x, t):
 # Creando el vector de coordenadas espaciales y temporales
 x = np.arange(x0, xL + dx, dx)
 t = np.arange(T0, Tf + dt, dt)
+error = np.zeros_like(x)
+error_ac = []
 
 # Conidción inicial del problema
 u_0 = np.sin(np.pi * x)
@@ -45,15 +47,39 @@ plt.close()
 # Evolución de la solución analítica con gráfica
 
 # Creando una instancia de figura
-fig, ax = plt.subplots()
-line, = ax.plot([], [], color='dodgerblue', ls='--', label='Solución analítica')
-line2, = ax.plot([], [], color='salmon', label='Solución numérica')
-ax.set_xlim((x0, xL))
-ax.set_ylim((0, 1))
-ax.legend()
-ax.grid()
-ax.set_xlabel('x (m)')
-ax.set_ylabel('u(x,t)')
+fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+
+# Gráfico de las soluciones calculadas
+line1, = ax[0].plot([], [], color='dodgerblue', ls='--',
+                   label='Solución analítica')
+line2, = ax[0].plot([], [], color='salmon', label='Solución numérica')
+ax[0].set_xlim((x0, xL))
+ax[0].set_ylim((0, 1))
+ax[0].set_ylabel('u(x,t)')
+ax[0].legend()
+ax[0].grid()
+ax[0].set_xlabel('x (m)')
+
+# Gráfico del error relativo en cada paso de tiempo
+line3, = ax[1].semilogy([], [], color='dodgerblue', ls='--',
+                        label='Error relativo')
+ax[1].set_xlim((x0, xL))
+ax[1].set_ylim((1e-6, 1))
+ax[1].set_xlabel('x (m)')
+ax[1].set_ylabel('Error relativo')
+ax[1].legend()
+ax[1].grid()
+
+# Gráfico de evolución de la norma del error
+line4, = ax[2].semilogy([], [], color='salmon', label='Norma del error')
+ax[2].set_xlim((T0, Tf))
+ax[2].set_ylim((1e-6, 1))
+ax[2].set_xlabel('t (s)')
+ax[2].set_ylabel('Norma del error')
+ax[2].set_title('Evolución de la norma del error')
+ax[2].legend()
+ax[2].grid()
+
 plt.tight_layout()
 plt.ion()
 plt.show()
@@ -63,25 +89,42 @@ for n in range(len(t)):
     
     # Solución analítica
     u_analytical = analytical_solution(x, t[n])
-    line.set_data(x, u_analytical)
+    line1.set_data(x, u_analytical)
     
     # Solución numérica por diferencias finitas
     if n == 0:
-        u_numerical = u_0.copy()
+
+        u_1 = u_0.copy()
+    
     else:
-        u_numerical_new = u_numerical.copy()
+
+        u_1 = u_0.copy()
         
         for i in range(1, len(x) - 1):
         
-            u_numerical_new[i] = (u_numerical[i + 1] +u_numerical[i - 1]) * S +\
-                                 (1 - 2 * S) * u_numerical[i]
+            u_1[i] = (u_0[i + 1] +u_0[i - 1]) * S + (1 - 2 * S) * u_0[i]
         
-        u_numerical = u_numerical_new.copy()
+        # Imponiendo condiciones de frontera
+        u_1[0] = 0
+        u_1[-1] = 0
 
-    line2.set_data(x, u_numerical)
-    ax.set_title(f'Solución numérica en t = {t[n]:.2f} s')
+        u_0 = u_1.copy()
+
+    # Calculando el error en el paso de tiempo
+    error[1:-1] = np.abs((u_analytical[1:-1] - u_0[1:-1]) / u_analytical[1:-1])
+    
+    # Calculando la norma del error y guardándola en un vector que acumule estos
+    # resultados
+    error_ac.append(np.linalg.norm(error, 2))
+
+    # Cuadrando los datos para las gráficas del proceso
+    line2.set_data(x, u_0)
+    line3.set_data(x, error)
+    line4.set_data(t[:n + 1], error_ac)
+    ax[0].set_title(f'Solución numérica en t = {t[n]:.2f} s')
+    ax[1].set_title(f'Error relativo en t = {t[n]:.2f} s')
     plt.draw()
-    plt.pause(0.5)
+    plt.pause(0.15)
 
-input('Presione enter para continuar...')
+input('Simulación finalizada.Presione enter para continuar...')
 plt.close()
