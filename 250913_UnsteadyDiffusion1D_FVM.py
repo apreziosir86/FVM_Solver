@@ -26,7 +26,7 @@ tmax = 3000                               # Tiempo final de simulación (s)
 # Variables numéricas - control de la simulación
 #  =============================================================================
 dx = 0.5                                  # Tamaño de paso (m)
-S = 0.8                                   # Número de estabilidad (-)
+S = 0.45                                  # Número de estabilidad (-)
 dt = S * dx ** 2 / Dm                     # Paso de tiempo (s)
 f = 1                                     # Explícito: 0 Implícito: 1 
 
@@ -144,7 +144,6 @@ for i in range(1, len(X) - 1):
 # Armando una matriz y un vector de mano derechapara poder solucionar por el
 # método implícito
 A = np.zeros((len(X), len(X)))
-b = np.zeros(len(X))
 
 # Llenando la matriz de coeficientes
 for i in range(1, len(A) - 1):
@@ -230,7 +229,7 @@ for t in range(1, len(T)):
 
 # Guardando el dataframe de resultados en excel
 datos.to_excel('Concentraciones_Salida.xlsx', index=False)
-errores.to_excel('Errores_Salida.xlsx')
+errores.to_excel('Errores_Salida.xlsx', index=False)
 
 # Terminando el programa
 input('Simulación finalizada, presione Enter')
