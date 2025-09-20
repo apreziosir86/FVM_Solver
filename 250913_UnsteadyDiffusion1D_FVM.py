@@ -28,7 +28,7 @@ tmax = 3000                               # Tiempo final de simulación (s)
 dx = 0.5                                  # Tamaño de paso (m)
 S = 0.45                                  # Número de estabilidad (-)
 dt = S * dx ** 2 / Dm                     # Paso de tiempo (s)
-f = 1                                     # Explícito: 0 Implícito: 1 
+f = 0.5                                   # Explícito: 0 Implícito: 1 
 
 #  =============================================================================
 # Haciendo el dominio espacial y la condición inicial
@@ -126,6 +126,9 @@ axs[2].set_ylabel('Norma del error')
 axs[2].set_ylim((1e-3, 100))
 axs[2].legend(loc='upper right')
 axs[2].grid()
+
+plt.suptitle('Título inicial')
+plt.tight_layout()
 
 #  =============================================================================
 # Calculando los coeficientes que no cambian en el tiempo (se construyen b para
