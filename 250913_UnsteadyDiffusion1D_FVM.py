@@ -87,77 +87,88 @@ plt.close()
 # Abriendo la instancia del gráfico de salida y configurándolo
 fig, axs =plt.subplots(1, 3, figsize=(15, 8))
 
+# Solución analítica - iniciando la línea y poniendo el color
 p_analit, = axs[0].plot([], [], label='Solución exacta',
             color='orangered', ls='--')
 
+# Solución numérica - iniciando la línea y poniendo el color
 p_numer, = axs[0].plot([], [], label='Solución numérica', 
             color='dodgerblue', ls='-')
 
+# Error absoluto - iniciando la línea y poniendo el color
 err_abs, = axs[1].semilogy([], [], label='Error absoluto', color='turquoise')
 
+# Error relativo - iniciando la línea y poniendo el color
 err_rel, = axs[1].semilogy([], [], label='Error relativo', color='olivedrab')
 
+# Norma del error absoluto - iniciando la línea y poniendo el color
 p_nerr_a, = axs[2].semilogy([], [], label='Norma error absoluto',
                             color='deepskyblue')
 
+# Norma del error relativo - iniciando la línea y poniendo el color
 p_nerr_r, = axs[2].semilogy([], [], label='Norma del error relativo',
                             color='blueviolet')
 
-# Cuadrando la gráfica de los resultados
-axs[0].set_xlim((X0, XL))
-axs[0].set_xlabel('Posición (m)')
-axs[0].set_ylim((0, M / dx * 1.1))
-axs[0].set_ylabel('Concentración (kg/m)')
-axs[0].legend()
-axs[0].grid()
+# Propiedades de la gráfica de soluciones
+axs[0].set_xlim((X0, XL))                 # Limites en x
+axs[0].set_xlabel('Posición (m)')         # Etiqueta en x
+axs[0].set_ylim((0, M / dx * 1.1))        # Limites en y
+axs[0].set_ylabel('Concentración (kg/m)') # Etiqueta en y
+axs[0].legend()                           # Leyenda
+axs[0].grid()                             # Cuadrícula
 
 # Cuadrando la gráfica del error
-axs[1].set_xlim((X0, XL))
-axs[1].set_xlabel('Posición (m)')
-axs[1].set_ylabel('Error relativo')
-axs[1].legend(loc='lower center')
-axs[1].grid()
-axs[1].set_ylim((1e-6, 1))
+axs[1].set_xlim((X0, XL))                 # Limites en x
+axs[1].set_xlabel('Posición (m)')         # Etiqueta en x
+axs[1].set_ylabel('Error relativo')       # Etiqueta en y
+axs[1].legend(loc='lower center')         # Leyenda
+axs[1].grid()                             # Cuadrícula
+axs[1].set_ylim((1e-6, 1))                # Limites en y
 
 # Cuadrando la gráfica de la norma del error
-axs[2].set_xlim((0, tmax))
-axs[2].set_xlabel('Tiempo (s)')
-axs[2].set_ylabel('Norma del error')
-axs[2].set_ylim((1e-3, 100))
-axs[2].legend(loc='upper right')
-axs[2].grid()
+axs[2].set_xlim((0, tmax))                # Limites en x
+axs[2].set_xlabel('Tiempo (s)')           # Etiqueta en x
+axs[2].set_ylabel('Norma del error')      # Etiqueta en y
+axs[2].set_ylim((1e-3, 100))              # Limites en y
+axs[2].legend(loc='upper right')          # Leyenda
+axs[2].grid()                             # Cuadrícula
 
 plt.suptitle('Título inicial')
 plt.tight_layout()
 
 #  =============================================================================
 # Calculando los coeficientes que no cambian en el tiempo (se construyen b para
-# poder tener el Cp libre en un lado del igual)
+# poder tener el Cp libre en un lado del igual). En el libro de Patankar se usan
+# coeficientes aP, aw y aE. Acá se usan bP, bW y bE, que son el resultado de 
+# dividir todo entre aP, cuando sea necesario. Los valores de estos vectores 
+# aplican solamente en los nodos internos, no en las fronteras.
 bE = np.zeros(len(X) - 2)
 bW = np.zeros_like(bE)
 bP = np.zeros_like(bE)
 
-# Llenando los coeficientes en los vectores que se asocian a cada nodo
+# Llenando los coeficientes en los vectores que se asocian a cada nodo. Esto se 
+# hace para no clacular dichos valores en todos los pasos de tiempo. Vea que 
+# esta es una matriz tridiagonal
 for i in range(1, len(X) - 1):
 
     bE[i - 1] = Dm * dt / (dx * (X[i + 1] - X[i]))
     bW[i - 1] = Dm * dt / (dx * (X[i] - X[i - 1]))
     bP[i - 1] = 1 - bE[i - 1] - bW[i - 1]
 
-# Armando una matriz y un vector de mano derechapara poder solucionar por el
+# Armando una matriz y un vector de mano derecha para poder solucionar por el
 # método implícito
 A = np.zeros((len(X), len(X)))
 
 # Llenando la matriz de coeficientes
 for i in range(1, len(A) - 1):
 
-    A[i, i - 1] = -bW[i - 1]
-    A[i, i + 1] = -bE[i - 1]
-    A[i, i] = 1 + bE[i - 1] + bW[i - 1]
+    A[i, i - 1] = -bW[i - 1]               # Nodo W (a la izquierda de P)
+    A[i, i + 1] = -bE[i - 1]               # Nodo E (a la derecha de P)
+    A[i, i] = 1 + bE[i - 1] + bW[i - 1]    # Nodo P (central)
 
 # Condiciones de frontera
-A[0, 0] = 1
-A[-1, -1] = 1
+A[0, 0] = 1                                # Frontera izquierda (Dirichlet)
+A[-1, -1] = 1                              # Frontera derecha (Dirichlet)
 
 # Iterando en el tiempo
 for t in range(1, len(T)):
@@ -165,7 +176,9 @@ for t in range(1, len(T)):
     # Solución analítica
     Can = sol_analitica(X, T[t], Dm, M, Xi)
 
-    # Calculando solución por método explícito
+    # Calculando solución por método explícito. Solo se calcula cuando f es 
+    # diferente de 1. En caso de que f sea 1, la solución explícita se reemplaza 
+    # por cero para que no pese en la ponderación
     if f != 1:
 
         # Solución numérica explícita
@@ -180,9 +193,11 @@ for t in range(1, len(T)):
             C1_e[i] = bP[i - 1] * C0[i] + bW[i - 1] * C0[i - 1]
             C1_e[i] += bE[i - 1] * C0[i + 1]
     
+    # Reemplazando por ceros cuando la solución es explícita
     else: C1_e = np.zeros_like(X)
 
-    # Calculando solución por método implícito
+    # Calculando solución por método implícito. Solamente se calcula cuando f es
+    # diferente de 0.
     if f != 0:
 
         # Arreglando el vector C0 para que funcione como vector de mano derecha
@@ -193,6 +208,8 @@ for t in range(1, len(T)):
         # Encontrando la solución al sistema de ecuaciones
         C1_i = np.linalg.solve(A, C0)
 
+    # Si la solución es exclusivamente explícita, el vector de resultados 
+    # implícitos se vuelve 0
     else: C1_i = np.zeros_like(X)
 
     # Ponderando la solución implícita con la explícita
@@ -201,7 +218,9 @@ for t in range(1, len(T)):
     # Reemplazando los valores de concentración para siguiente paso de tiempo
     C0 = C1.copy()
 
-    # Calculando el error absoluto y relativo
+    # Calculando el error absoluto y relativo. El error relativo solamente se 
+    # calcula en los nodos internos para no tener problemas de infinitos en el 
+    # dominio
     error_a = np.abs(Can - C1)
     error_r[1:-1] = np.abs((Can[1:-1] - C1[1:-1]) / Can[1:-1])
     error_r[error_r == np.nan] = 0
@@ -210,16 +229,17 @@ for t in range(1, len(T)):
     norm_err_a.append(np.linalg.norm(error_a))
     norm_err_r.append(np.linalg.norm(error_r, np.inf))    
 
-    # Graficando los resultados del paso de tiempo
-    p_analit.set_data(X, Can)
-    p_numer.set_data(X, C1)
-    err_abs.set_data(X, error_a)
-    err_rel.set_data(X, error_r)
-    p_nerr_a.set_data(T[1:t + 1], norm_err_a)
-    p_nerr_r.set_data(T[1:t + 1], norm_err_r)
-    plt.suptitle(f'Resultados para t = {T[t]:.3f} s')
-    plt.draw()
-    plt.pause(0.25)
+    # Graficando los resultados del paso de tiempo. Esta parte le dice a las 
+    # gráficas iniciadas qué datos deben pintar
+    p_analit.set_data(X, Can)                          # Sol. Analítica
+    p_numer.set_data(X, C1)                            # Sol. Numérica
+    err_abs.set_data(X, error_a)                       # Err. Absoluto
+    err_rel.set_data(X, error_r)                       # Err. Relativo
+    p_nerr_a.set_data(T[1:t + 1], norm_err_a)          # Norma err. absoluto
+    p_nerr_r.set_data(T[1:t + 1], norm_err_r)          # Norma err. relativo
+    plt.suptitle(f'Resultados para t = {T[t]:.3f} s')  # Título del gráfico
+    plt.draw()                                         # Dibujar en la ventana
+    plt.pause(0.25)                                    # Pausar el dibujo
 
     # Agregando columna al dataframe (si es necesario)
     if t % n == 0:
