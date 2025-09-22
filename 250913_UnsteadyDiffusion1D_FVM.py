@@ -98,7 +98,7 @@ err_abs, = axs[1].semilogy([], [], label='Error absoluto', color='turquoise')
 err_rel, = axs[1].semilogy([], [], label='Error relativo', color='olivedrab')
 
 p_nerr_a, = axs[2].semilogy([], [], label='Norma error absoluto',
-                            color='indigo')
+                            color='deepskyblue')
 
 p_nerr_r, = axs[2].semilogy([], [], label='Norma del error relativo',
                             color='blueviolet')
