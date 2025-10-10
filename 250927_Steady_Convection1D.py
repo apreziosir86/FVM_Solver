@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 phi0 = 10
 phiL = 2
 L = 5
-u = 50.
+u = 20.
 rho = 2
-Tau = 40
-dx = 0.10                            # Tamaño de celda de volumen (m)
+Tau = 1
+dx = 0.25                            # Tamaño de celda de volumen (m)
 
 # Calculando e imprimiendo el número de Peclet:
 Pe = rho * u * L / Tau

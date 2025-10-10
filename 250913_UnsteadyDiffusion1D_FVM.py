@@ -54,7 +54,7 @@ print(f'Número de pasos de tiempo: {len(T)}')
 #  =============================================================================
 n = int(input('¿Cada cuántos pasos de tiempo quiere guardar resultados? '))
 
-#  =============================================================================
+#  ====================================F = rho * u=========================================
 # Creando un dataframe para guardar los resultados y otro para los errores
 #  =============================================================================
 datos = pd.DataFrame({
