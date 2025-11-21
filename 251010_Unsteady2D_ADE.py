@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 def V_parabolica(X, Lx, umax): 
     """Perfil parabólico de velocidad VERTICAL: V(x) = 4*umax*(x*Lx - x²)/Lx²"""
-    return 4 * umax * (X * Lx - X**2) / (Lx**2)
+    return 4 * umax * (X * Lx - X ** 2) / (Lx ** 2)
 
 def esquema_upwind_simple(Pe):
     """Esquema Upwind puro - muy estable"""
@@ -21,12 +21,12 @@ def esquema_upwind_simple(Pe):
 Lx = 5.    # Ancho del dominio
 Ly = 20.   # Alto del dominio  
 Tmax = 15. # Tiempo suficiente para ver movimiento
-umax = 2.0 # Velocidad razonable
-Tau = 0.1  # Difusividad moderada
+umax = 0.8 # Velocidad razonable
+Tau = 0.5  # Difusividad moderada
 Cf = 1.0   # Concentración entrada más visible
 
-dx = 0.25
-dy = 0.25  
+dx = 1.
+dy = 1.  
 dt = 0.05  # Paso temporal más pequeño
 
 nx = int(Lx / dx) + 1
@@ -111,6 +111,14 @@ for idx in range(N):
         A[idx, idx - 1] = -a_oeste       # Oeste
 
 print("Matriz construida correctamente")
+
+plt.figure(figsize=(8, 6))
+
+plt.spy(A, markersize=1)
+plt.draw()
+plt.pause(0.1)
+input('Presione enter')
+plt.close()
 
 # ==============================================================================
 # SIMULACIÓN TEMPORAL - CON ESCALA DE COLORES FIJA Y SIN ERRORES
